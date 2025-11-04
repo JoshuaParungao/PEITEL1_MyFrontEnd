@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { View, Text, FlatList, Button } from 'react-native';
-import { ActivityIndicator } from 'react-native-web';
+import { View, Text, FlatList, Button, Alert, ActivityIndicator, Platform } from 'react-native';
 
 export default function UserListPage() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const API_BASE = "http://192.168.30.137:8081/registration/api/users/";
 
-    useEffect(() => {
-        axios.get("http://127.0.0.1:8000/registration/api/users/")
+    const fetchUsers = () => {
+        setLoading(true);
+    axios.get(API_BASE)
             .then((response) => {
                 setUsers(response.data);
             })
@@ -18,7 +19,13 @@ export default function UserListPage() {
             .finally(() => {
                 setLoading(false);
             });
+    };
+
+    useEffect(() => {
+        fetchUsers();
     }, []);
+
+
     if (loading) {
         return (
             <View>
@@ -27,6 +34,57 @@ export default function UserListPage() {
             </View>
         );
     }
+
+    const confirmDeleteWeb = async (id) => {
+    
+        const ok = typeof window !== 'undefined' ? window.confirm('Are you sure you want to delete this user?') : true;
+        if (!ok) return;
+        try {
+            await axios.delete(`${API_BASE}${id}/`);
+            if (Platform.OS === 'web') {
+                window.alert('User deleted successfully');
+            } else {
+                Alert.alert('User deleted successfully');
+            }
+            fetchUsers();
+        } catch (error) {
+            console.error(error);
+          
+            if (Platform.OS === 'web') {
+                if (error.response) {
+                    
+                    window.alert(`Failed to delete user: ${error.response.status} ${error.response.statusText}`);
+                } else if (error.request) {
+                
+                    window.alert('Failed to delete user: Network error or CORS blocked the request. Check backend CORS settings and that the server is reachable from the browser.');
+                } else {
+                    window.alert(`Failed to delete user: ${error.message}`);
+                }
+            } else {
+                Alert.alert('Failed to delete user');
+            }
+        }
+    };
+
+    const handleDelete = (id) => {
+      
+        if (Platform.OS === 'web') {
+            confirmDeleteWeb(id);
+            return;
+        }
+
+        Alert.alert(
+            'Confirm Deletion',
+            'Are you sure you want to delete this user?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Delete', style: 'destructive', onPress: () => confirmDeleteWeb(id) },
+            ]
+        );
+    };
+
+
+
 
     return (
         <View>
@@ -41,11 +99,15 @@ export default function UserListPage() {
                     <Text>Email: {item.email}</Text>
                     <Text>Gender: {item.gender}</Text>
                     <Text>-----------------------------</Text>
-                    <Button title= "edit user"
-                    color={"#841584"}/>
-                    <Button title= "delete user"
-                    color={"#ff0000"}/>
-                    
+                    <Button 
+                        title="edit user"
+                        color={"#841584"}
+                    />
+                    <Button 
+                        title="delete user"
+                        color={"#ff0000"}
+                        onPress={() => handleDelete(item.id)}
+                    />
                 </View>
             )}/>
         </View>
