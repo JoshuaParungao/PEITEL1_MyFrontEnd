@@ -1,4 +1,4 @@
-import { View, Text, Button, TextInput } from 'react-native';
+import { View, Text, Button, TextInput, Alert, Platform } from 'react-native';
 import styles from "../styles";
 import { useState } from 'react';
 
@@ -13,6 +13,33 @@ export default function RegisterPage({navigation}) {
 
     const handleChange = (field, value) => {
         setFormData({ ...formData, [field]: value });
+    };
+
+    const isValidEmail = (email) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
+
+    const handleReviewNavigate = () => {
+        if (!formData.first_name || !formData.last_name || !formData.email || !formData.gender || !formData.password) {
+            if (Platform.OS === 'web') {
+                window.alert("Please fill in all required fields");
+            } else {
+                Alert.alert("Error", "Please fill in all required fields");
+            }
+            return;
+        }
+
+        if (!isValidEmail(formData.email)) {
+            if (Platform.OS === 'web') {
+                window.alert("Please Input Valid Email");
+            } else {
+                Alert.alert("Error", "Please Input Valid Email");
+            }
+            return;
+        }
+
+        navigation.navigate("Review", {formData});
     };
 
     return (
@@ -53,7 +80,7 @@ export default function RegisterPage({navigation}) {
             <View style={styles.ButtonContainer}>
                 <Button
                     title = 'Review and Submit'
-                    onPress={()=>navigation.navigate("Review",{formData})}
+                    onPress={handleReviewNavigate}
                 />
             </View>
         </View>

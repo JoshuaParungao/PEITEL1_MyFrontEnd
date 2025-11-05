@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { View, Text, FlatList, Button, Alert, ActivityIndicator, Platform } from 'react-native';
 
-export default function UserListPage() {
+export default function UserListPage({ navigation }) {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const API_BASE = "http://192.168.30.137:8081/registration/api/users/";
@@ -17,7 +17,7 @@ export default function UserListPage() {
                 console.error(error);
             })
             .finally(() => {
-                setLoading(false);
+                setLoading(false);w
             });
     };
 
@@ -84,7 +84,10 @@ export default function UserListPage() {
     };
 
 
+    const handleEdit = ( user ) => {
 
+        navigation.navigate("EditUser",{ user });
+    }
 
     return (
         <View>
@@ -99,8 +102,11 @@ export default function UserListPage() {
                     <Text>Email: {item.email}</Text>
                     <Text>Gender: {item.gender}</Text>
                     <Text>-----------------------------</Text>
+
+
                     <Button 
                         title="edit user"
+                        onPress={() => handleEdit(item)}
                         color={"#841584"}
                     />
                     <Button 
